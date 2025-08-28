@@ -20,10 +20,13 @@ const client = wrapper(axios.create({ jar }));
 app.get('/api/allIndices', async (req, res) => {
   try {
     await client.get('https://www.nseindia.com', { headers });
+    // Wait 1 second before next request
+    await new Promise(resolve => setTimeout(resolve, 1000));
     const response = await client.get('https://www.nseindia.com/api/allIndices', { headers });
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch indices' });
+    console.error('NSE fetch error:', err?.response?.status, err?.response?.data);
+    res.status(500).json({ error: 'Failed to fetch indices', details: err?.response?.data });
   }
 });
 
