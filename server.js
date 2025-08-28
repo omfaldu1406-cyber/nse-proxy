@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const { wrapper } = require('axios-cookiejar-support');
+const tough = require('tough-cookie');
 const app = express();
 app.use(cors());
 
@@ -12,9 +14,13 @@ const headers = {
   'Connection': 'keep-alive'
 };
 
+const jar = new tough.CookieJar();
+const client = wrapper(axios.create({ jar }));
+
 app.get('/api/allIndices', async (req, res) => {
   try {
-    const response = await axios.get('https://www.nseindia.com/api/allIndices', { headers });
+    await client.get('https://www.nseindia.com', { headers });
+    const response = await client.get('https://www.nseindia.com/api/allIndices', { headers });
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch indices' });
@@ -24,7 +30,8 @@ app.get('/api/allIndices', async (req, res) => {
 app.get('/api/option-chain-indices', async (req, res) => {
   const symbol = req.query.symbol;
   try {
-    const response = await axios.get(`https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`, { headers });
+    await client.get('https://www.nseindia.com', { headers });
+    const response = await client.get(`https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`, { headers });
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch option chain' });
